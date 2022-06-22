@@ -34,6 +34,7 @@ import org.kie.kogito.serverless.workflow.suppliers.ClientOAuth2AuthDecoratorSup
 import org.kie.kogito.serverless.workflow.suppliers.CollectionParamsDecoratorSupplier;
 import org.kie.kogito.serverless.workflow.suppliers.ConfigSuppliedWorkItemSupplier;
 import org.kie.kogito.serverless.workflow.suppliers.PasswordOAuth2AuthDecoratorSupplier;
+import org.kie.kogito.serverless.workflow.utils.ServerlessWorkflowUtils;
 import org.kie.kogito.serverless.workflow.utils.WorkflowOperationId;
 import org.kogito.workitem.rest.RestWorkItemHandler;
 import org.kogito.workitem.rest.auth.ApiKeyAuthDecorator;
@@ -75,7 +76,7 @@ public class DescriptorRestOperationHandler implements RestOperationHandler {
     private static final Logger logger = LoggerFactory.getLogger(DescriptorRestOperationHandler.class);
 
     private final ParserContext parserContext;
-    private final WorkflowOperationId operationId;
+    private WorkflowOperationId operationId;
 
     public DescriptorRestOperationHandler(ParserContext parserContext, WorkflowOperationId operationId) {
         this.parserContext = parserContext;
@@ -99,6 +100,9 @@ public class DescriptorRestOperationHandler implements RestOperationHandler {
             SwaggerParseResult result =
                     new OpenAPIParser().readContents(new String(readAllBytes(buildLoader(uri, parserContext.getContext().getClassLoader(), workflow, function.getAuthRef()))), null, null);
             OpenAPI openAPI = result.getOpenAPI();
+            serviceName = ServerlessWorkflowUtils.replaceNonAlphanumericByUnderscores(openAPI.getInfo().getTitle());
+            WorkflowOperationId newOperationId = WorkflowOperationId.fromOperation(uri.toString().substring(0, uri.toString().lastIndexOf("/") + 1) + serviceName + "#" + operationId.getOperation());
+            this.operationId = newOperationId;
             if (openAPI == null) {
                 throw new IllegalArgumentException("Problem parsing uri " + uri);
             }
