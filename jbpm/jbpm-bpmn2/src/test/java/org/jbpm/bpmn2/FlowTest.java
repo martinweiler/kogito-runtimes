@@ -1120,6 +1120,27 @@ public class FlowTest extends JbpmBpmn2TestCase {
                 "MultiInstanceLoopCharacteristicsProcessWithOutput", params);
         assertProcessInstanceCompleted(processInstance);
         assertThat(myListOut).hasSize(2);
+        assertThat(myListOut.get(1)).isEqualTo("Second Item changed");
+
+    }
+
+    @Test
+    public void testMultiInstanceLoopCharacteristicsSubProcessWithOutput()
+            throws Exception {
+        kruntime = createKogitoProcessRuntime("BPMN2-MultiInstanceLoopCharacteristicsSubProcessWithOutput.bpmn2", "BPMN2-MultiInstanceLoopCharacteristicsSubProcess.bpmn2");
+        Map<String, Object> params = new HashMap<>();
+        List<String> myList = new ArrayList<>();
+        List<String> myListOut = new ArrayList<>();
+        myList.add("First Item");
+        myList.add("Second Item");
+        params.put("list", myList);
+        params.put("listOut", myListOut);
+        assertThat(myListOut).isEmpty();
+        KogitoProcessInstance processInstance = kruntime.startProcess(
+                "MultiInstanceLoopCharacteristicsSubProcessWithOutput", params);
+        assertProcessInstanceCompleted(processInstance);
+        assertThat(myListOut).hasSize(2);
+        assertThat(myListOut.get(1)).isEqualTo("Second Item changed by subprocess");
 
     }
 
