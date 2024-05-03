@@ -61,7 +61,7 @@
     </userTask>
     <boundaryEvent id="BoundaryEvent_2" name="Boundary event" attachedToRef="UserTask_1" cancelActivity="false">
       <outgoing>SequenceFlow_5</outgoing>
-      <dataOutput id="_4_Output" name="param"/>
+      <dataOutput id="_4_Output" name="param" itemSubjectRef="_xItem"/>
       <dataOutputAssociation id="DataOutputAssociation_1">
         <sourceRef>_4_Output</sourceRef>
         <targetRef>x</targetRef>
