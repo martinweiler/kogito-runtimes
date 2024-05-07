@@ -28,10 +28,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.jbpm.bpmn2.activity.SignalStartWithTransformationModel;
+import org.jbpm.bpmn2.activity.SignalStartWithTransformationProcess;
 import org.jbpm.bpmn2.objects.NotAvailableGoodsReport;
 import org.jbpm.bpmn2.objects.Person;
 import org.jbpm.bpmn2.objects.TestWorkItemHandler;
 import org.jbpm.test.util.NodeLeftCountDownProcessEventListener;
+import org.jbpm.test.utils.ProcessTestHelper;
 import org.junit.jupiter.api.Test;
 import org.kie.api.KieServices;
 import org.kie.api.builder.KieRepository;
@@ -39,9 +42,11 @@ import org.kie.api.event.process.ProcessStartedEvent;
 import org.kie.api.io.Resource;
 import org.kie.api.runtime.KieContainer;
 import org.kie.internal.io.ResourceFactory;
+import org.kie.kogito.Application;
 import org.kie.kogito.internal.process.event.DefaultKogitoProcessEventListener;
 import org.kie.kogito.internal.process.runtime.KogitoProcessInstance;
 import org.kie.kogito.internal.process.runtime.KogitoWorkItem;
+import org.kie.kogito.process.ProcessInstance;
 import org.kie.kogito.process.workitems.InternalKogitoWorkItem;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -474,22 +479,15 @@ public class StartEventTest extends JbpmBpmn2TestCase {
 
     @Test
     public void testSignalStartWithTransformation() throws Exception {
-        NodeLeftCountDownProcessEventListener countDownListener = new NodeLeftCountDownProcessEventListener("StartProcess", 1);
-        kruntime = createKogitoProcessRuntime("BPMN2-SignalStartWithTransformation.bpmn2");
-        kruntime.getProcessEventManager().addEventListener(countDownListener);
-        final List<KogitoProcessInstance> list = new ArrayList<>();
-        kruntime.getProcessEventManager().addEventListener(new DefaultKogitoProcessEventListener() {
-            @Override
-            public void beforeProcessStarted(ProcessStartedEvent event) {
-                list.add((KogitoProcessInstance) event.getProcessInstance());
-            }
-        });
-        kruntime.signalEvent("MySignal", "NewValue");
-        countDownListener.waitTillCompleted();
-        assertThat(getNumberOfProcessInstances("Minimal")).isEqualTo(1);
-        assertThat(list).isNotNull().hasSize(1);
-        String var = getProcessVarValue(list.get(0), "x");
-        assertThat(var).isEqualTo("NEWVALUE");
+        Application application = ProcessTestHelper.newApplication();
+        org.kie.kogito.process.Process<SignalStartWithTransformationModel> processSignalStart = SignalStartWithTransformationProcess.newProcess(application);
+
+        SignalStartWithTransformationModel modelSignalStart = processSignalStart.createModel();
+        modelSignalStart.setX("NewValue");
+        ProcessInstance<SignalStartWithTransformationModel> instanceSignalStart = processSignalStart.createInstance(modelSignalStart);
+        instanceSignalStart.start();
+        assertThat(instanceSignalStart).extracting(ProcessInstance::status).isEqualTo(ProcessInstance.STATE_COMPLETED);
+        assertThat(instanceSignalStart.variables().getX()).isEqualTo("NEWVALUE");
     }
 
     /**

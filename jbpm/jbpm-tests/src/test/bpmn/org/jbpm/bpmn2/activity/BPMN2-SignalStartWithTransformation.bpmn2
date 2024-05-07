@@ -13,7 +13,7 @@
 
   <itemDefinition id="_xItem" structureRef="String" />
 
-  <process processType="Private" isExecutable="true" id="Minimal" name="Minimal Process" tns:packageName="com.sample" >
+  <process processType="Private" isExecutable="true" id="SignalStartWithTransformation" name="Minimal Process" tns:packageName="org.jbpm.bpmn2.activity" >
 
     <!-- process variables -->
     <property id="x" itemSubjectRef="_xItem"/>
