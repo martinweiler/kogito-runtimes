@@ -440,6 +440,102 @@ public class BusinessCalendarImplTest extends AbstractBaseTest {
         assertThat(formatDate("yyyy-MM-dd HH:mm:ss", result)).isEqualTo(expectedDate);
     }
 
+    @Test
+    public void testCalculateHoursBeforeEndHour() {
+        Properties config = new Properties();
+        config.setProperty(BusinessCalendarImpl.HOURS_PER_DAY, "4");
+        config.setProperty(BusinessCalendarImpl.START_HOUR, "14");
+        config.setProperty(BusinessCalendarImpl.END_HOUR, "18");
+        String currentDate = "2024-11-28 17:59:33.000";
+        String duration = "2H";
+        String expectedDate = "2024-11-29 15:59:33";
+
+        SessionPseudoClock clock = new StaticPseudoClock(parseToDateWithTimeAndMillis(currentDate).getTime());
+        BusinessCalendarImpl businessCal = new BusinessCalendarImpl(config, clock);
+
+        Date result = businessCal.calculateBusinessTimeAsDate(duration);
+
+        assertThat(formatDate("yyyy-MM-dd HH:mm:ss", result)).isEqualTo(expectedDate);
+    }
+
+    @Test
+    public void testCalculateHoursBeforeEndHourWithHolidays() {
+        Properties config = new Properties();
+        config.setProperty(BusinessCalendarImpl.HOURS_PER_DAY, "4");
+        config.setProperty(BusinessCalendarImpl.START_HOUR, "14");
+        config.setProperty(BusinessCalendarImpl.END_HOUR, "18");
+        config.setProperty(BusinessCalendarImpl.HOLIDAYS, "2024-11-28:2024-11-29");
+
+        String currentDate = "2024-11-27 17:59:33.000";
+        String duration = "2H";
+        String expectedDate = "2024-12-02 15:59:33";
+
+        SessionPseudoClock clock = new StaticPseudoClock(parseToDateWithTimeAndMillis(currentDate).getTime());
+        BusinessCalendarImpl businessCal = new BusinessCalendarImpl(config, clock);
+
+        Date result = businessCal.calculateBusinessTimeAsDate(duration);
+
+        assertThat(formatDate("yyyy-MM-dd HH:mm:ss", result)).isEqualTo(expectedDate);
+    }
+
+    @Test
+    public void testCalculateHoursToExecuteSameDayStartingBeforeWorkingOurs() {
+        Properties config = new Properties();
+        config.setProperty(BusinessCalendarImpl.HOURS_PER_DAY, "4");
+        config.setProperty(BusinessCalendarImpl.START_HOUR, "14");
+        config.setProperty(BusinessCalendarImpl.END_HOUR, "18");
+
+        String currentDate = "2024-11-27 13:59:33.000";
+        String duration = "2H";
+        String expectedDate = "2024-11-27 16:59:33";
+
+        SessionPseudoClock clock = new StaticPseudoClock(parseToDateWithTimeAndMillis(currentDate).getTime());
+        BusinessCalendarImpl businessCal = new BusinessCalendarImpl(config, clock);
+
+        Date result = businessCal.calculateBusinessTimeAsDate(duration);
+
+        assertThat(formatDate("yyyy-MM-dd HH:mm:ss", result)).isEqualTo(expectedDate);
+    }
+
+    @Test
+    public void testCalculateHoursToExecuteNextDayStartingBeforeWorkingOurs() {
+        Properties config = new Properties();
+        config.setProperty(BusinessCalendarImpl.HOURS_PER_DAY, "4");
+        config.setProperty(BusinessCalendarImpl.START_HOUR, "14");
+        config.setProperty(BusinessCalendarImpl.END_HOUR, "18");
+
+        String currentDate = "2024-11-27 13:59:33.000";
+        String duration = "5H";
+        String expectedDate = "2024-11-28 14:59:33";
+
+        SessionPseudoClock clock = new StaticPseudoClock(parseToDateWithTimeAndMillis(currentDate).getTime());
+        BusinessCalendarImpl businessCal = new BusinessCalendarImpl(config, clock);
+
+        Date result = businessCal.calculateBusinessTimeAsDate(duration);
+
+        assertThat(formatDate("yyyy-MM-dd HH:mm:ss", result)).isEqualTo(expectedDate);
+    }
+
+    @Test
+    public void testCalculateHoursToExecuteAfterHolidaysStartingBeforeWorkingOurs() {
+        Properties config = new Properties();
+        config.setProperty(BusinessCalendarImpl.HOURS_PER_DAY, "4");
+        config.setProperty(BusinessCalendarImpl.START_HOUR, "14");
+        config.setProperty(BusinessCalendarImpl.END_HOUR, "18");
+        config.setProperty(BusinessCalendarImpl.HOLIDAYS, "2024-11-28:2024-11-29");
+
+        String currentDate = "2024-11-27 13:59:33.000";
+        String duration = "5H";
+        String expectedDate = "2024-12-02 14:59:33";
+
+        SessionPseudoClock clock = new StaticPseudoClock(parseToDateWithTimeAndMillis(currentDate).getTime());
+        BusinessCalendarImpl businessCal = new BusinessCalendarImpl(config, clock);
+
+        Date result = businessCal.calculateBusinessTimeAsDate(duration);
+
+        assertThat(formatDate("yyyy-MM-dd HH:mm:ss", result)).isEqualTo(expectedDate);
+    }
+
     private Date parseToDate(String dateString) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
