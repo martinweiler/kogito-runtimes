@@ -231,6 +231,16 @@ class BaseProcessInstanceManagementResourceTest {
             public Object updateProcessInstanceSla(String processId, String processInstanceId, SlaPayload SLAPayload) {
                 return null;
             }
+
+            @Override
+            public Object getProcessInstanceJson(String processId, String processInstanceId) {
+                return null;
+            }
+
+            @Override
+            public Object createProcessInstanceFromJson(String processId, String jsonPayloadString) {
+                return null;
+            }
         });
     }
 

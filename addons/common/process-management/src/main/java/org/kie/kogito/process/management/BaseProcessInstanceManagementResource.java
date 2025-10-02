@@ -23,6 +23,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import org.jbpm.flow.serialization.MarshallerContextName;
+import org.jbpm.flow.serialization.ProcessInstanceMarshallerService;
 import org.jbpm.ruleflow.core.Metadata;
 import org.jbpm.workflow.core.Node;
 import org.jbpm.workflow.core.WorkflowProcess;
@@ -30,6 +32,7 @@ import org.kie.kogito.Application;
 import org.kie.kogito.Model;
 import org.kie.kogito.internal.process.runtime.KogitoNodeInstance;
 import org.kie.kogito.internal.process.runtime.KogitoWorkflowProcess;
+import org.kie.kogito.process.MutableProcessInstances;
 import org.kie.kogito.process.Process;
 import org.kie.kogito.process.ProcessError;
 import org.kie.kogito.process.ProcessInstance;
@@ -37,6 +40,7 @@ import org.kie.kogito.process.ProcessInstanceExecutionException;
 import org.kie.kogito.process.Processes;
 import org.kie.kogito.process.WorkItem;
 import org.kie.kogito.process.impl.AbstractProcess;
+import org.kie.kogito.process.impl.AbstractProcessInstance;
 import org.kie.kogito.services.uow.UnitOfWorkExecutor;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -250,6 +254,45 @@ public abstract class BaseProcessInstanceManagementResource<T> implements Proces
                 throw ProcessInstanceExecutionException.fromError(processInstance);
             } else {
                 return buildOkResponse(processInstance.variables());
+            }
+        });
+    }
+
+    public T doGetProcessInstanceJson(String processId, String processInstanceId) {
+
+        return executeOnProcessInstance(processId, processInstanceId, processInstance -> {
+            try {
+                ProcessInstanceMarshallerService marshaller = ProcessInstanceMarshallerService.newBuilder()
+                        .withDefaultObjectMarshallerStrategies()
+                        .withDefaultListeners()
+                        .withContextEntry(MarshallerContextName.MARSHALLER_FORMAT, MarshallerContextName.MARSHALLER_FORMAT_JSON)
+                        .build();
+                ((AbstractProcessInstance) processInstance).internalLoadProcessInstanceState();
+                byte[] data = marshaller.marshallProcessInstance(processInstance);
+                return buildOkResponse(new String(data, "UTF-8"));
+            } catch (Exception e) {
+                e.printStackTrace();
+                return badRequestResponse(e.getMessage());
+            }
+        });
+    }
+
+    public T doCreateProcessInstanceFromJson(String processId, String jsonPayloadString) {
+        return executeOnProcess(processId, process -> {
+            try {
+                ProcessInstanceMarshallerService marshaller = ProcessInstanceMarshallerService.newBuilder()
+                        .withDefaultObjectMarshallerStrategies()
+                        .withDefaultListeners()
+                        .withContextEntry(MarshallerContextName.MARSHALLER_FORMAT, MarshallerContextName.MARSHALLER_FORMAT_JSON)
+                        .build();
+
+                ProcessInstance processInstance = marshaller.unmarshallProcessInstance(jsonPayloadString.getBytes("UTF-8"), process);
+                // TODO: ((AbstractProcessInstance)processInstance).internalSetProcessInstance(..) - BUT HOW?!
+                ((MutableProcessInstances) process.instances()).create(processId, processInstance);
+                return buildOkResponse(processInstance.id());
+            } catch (Exception e) {
+                e.printStackTrace();
+                return badRequestResponse(e.getMessage());
             }
         });
     }

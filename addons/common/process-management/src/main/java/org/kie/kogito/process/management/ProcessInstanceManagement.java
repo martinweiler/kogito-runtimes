@@ -32,6 +32,8 @@ public interface ProcessInstanceManagement<T> {
 
     T getProcessInstanceTimers(String processId, String processInstanceId);
 
+    T getProcessInstanceJson(String processId, String processInstanceId);
+
     T retriggerInstanceInError(String processId, String processInstanceId);
 
     T skipInstanceInError(String processId, String processInstanceId);
@@ -53,5 +55,7 @@ public interface ProcessInstanceManagement<T> {
     T updateNodeInstanceSla(String processId, String processInstanceId, String nodeInstanceId, SlaPayload SLAPayload);
 
     T updateProcessInstanceSla(String processId, String processInstanceId, SlaPayload SLAPayload);
+
+    T createProcessInstanceFromJson(String processId, String jsonPayloadString);
 
 }

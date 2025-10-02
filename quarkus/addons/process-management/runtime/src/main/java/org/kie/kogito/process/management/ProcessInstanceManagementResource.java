@@ -178,6 +178,14 @@ public class ProcessInstanceManagementResource extends BaseProcessInstanceManage
     }
 
     @Override
+    @GET
+    @Path("{processId}/instances/{processInstanceId}/json")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getProcessInstanceJson(@PathParam("processId") String processId, @PathParam("processInstanceId") String processInstanceId) {
+        return doGetProcessInstanceJson(processId, processInstanceId);
+    }
+
+    @Override
     @DELETE
     @Path("{processId}/instances/{processInstanceId}")
     @Produces(MediaType.APPLICATION_JSON)
@@ -200,6 +208,15 @@ public class ProcessInstanceManagementResource extends BaseProcessInstanceManage
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateProcessInstanceSla(@PathParam("processId") String processId, @PathParam("processInstanceId") String processInstanceId, SlaPayload slaPayload) {
         return doUpdateProcessInstanceSla(processId, processInstanceId, slaPayload);
+    }
+
+    @Override
+    @PUT
+    @Path("{processId}/instances")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response createProcessInstanceFromJson(@PathParam("processId") String processId, String jsonPayloadString) {
+        return doCreateProcessInstanceFromJson(processId, jsonPayloadString);
     }
 
 }
